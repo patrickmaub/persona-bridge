@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
-import  Lexer, { TokenType } from '../src/lexer';
-import  Parser from '../src/parser';
+import  Lexer, { TokenType } from '../src/lexer.js';
+import  Parser from '../src/parser.js';
 
 test('should parse a function declaration', () => {
     const lexer = new Lexer('function x() { return 1 ; }');

@@ -1,5 +1,5 @@
-import { CompilerBug, InvalidFormat, InvalidType, InvalidTypeMultiple, NativeFunctionArgumentNumberMismatch } from "./error";
-import { BooleanValue, NumberValue, StringValue, Value } from "./value";
+import { CompilerBug, InvalidFormat, InvalidType, InvalidTypeMultiple, NativeFunctionArgumentNumberMismatch } from "./error.js";
+import { BooleanValue, NumberValue, StringValue, Value } from "./value.js";
 
 
 const number = (lineNumber, args: Value[]) => {

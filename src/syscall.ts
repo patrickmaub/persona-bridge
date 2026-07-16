@@ -1,18 +1,19 @@
-import { InvalidType, SycallArgumentNumberMismatch } from "./error";
-import {Value, StringValue, NumberValue, BooleanValue, HostRefValue, LocationRefValue, ImageRefValue, AudioRefValue, VideoRefValue, FileRefValue} from './value'
+import { InvalidType, SycallArgumentNumberMismatch } from "./error.js";
+import {Value, StringValue, NumberValue, BooleanValue, HostRefValue, LocationRefValue, ImageRefValue, AudioRefValue, VideoRefValue, FileRefValue} from './value.js'
 
 type HostRefConstructor = new (value: string) => HostRefValue;
-type ParamType = 'string' | 'number' | 'any' | 'host_ref';
+export type ParamType = 'string' | 'number' | 'any' | 'host_ref';
 type ReturnType = 'string' | 'number' | 'boolean' | HostRefConstructor;
 
-interface SyscallParam {
+export interface SyscallParam {
     type: ParamType;
     optional?: boolean;
     default?: Value;
 }
 
-interface SyscallDefinition {
+export interface SyscallDefinition {
     syscallId: string;
+    params: SyscallParam[];
     preprocessor: (args: Value[], lineNumber: number) => Value[];
     returnType: ReturnType;
 }
@@ -21,6 +22,7 @@ function defineSyscall(name: string, syscallId: string, params: SyscallParam[], 
     const requiredCount = params.filter(p => !p.optional).length;
     return {
         syscallId,
+        params,
         returnType,
         preprocessor: (args: Value[], lineNumber: number): Value[] => {
             if (args.length < requiredCount || args.length > params.length)
@@ -54,6 +56,7 @@ function defineSyscall(name: string, syscallId: string, params: SyscallParam[], 
 const syscallDefinitions: Record<string, SyscallDefinition> = {
     'syscall': {
         syscallId: 'is.melon.syscall',
+        params: [{ type: 'string' }, { type: 'any' }],
         returnType: 'string',
         preprocessor: (args: Value[], lineNumber: number) => {
             if (args.length < 2)
@@ -67,6 +70,7 @@ const syscallDefinitions: Record<string, SyscallDefinition> = {
     },
     'print': {
         syscallId: 'is.workflow.actions.showresult',
+        params: [{ type: 'string' }],
         returnType: 'string',
         preprocessor: (args: Value[], lineNumber: number) => {
             return [new StringValue(args.map(arg => arg.str).join(' '))];
@@ -77,6 +81,7 @@ const syscallDefinitions: Record<string, SyscallDefinition> = {
     ]),
     'exit': {
         syscallId: 'is.workflow.actions.stop',
+        params: [{ type: 'string', optional: true }],
         returnType: 'string',
         preprocessor: (args: Value[], lineNumber: number) => {
             if (args.length > 1)
@@ -367,14 +372,14 @@ const syscallDefinitions: Record<string, SyscallDefinition> = {
     // --- Files ---
 
     'saveFile': defineSyscall('saveFile', 'is.workflow.actions.documentpicker.save', [
-        { type: 'any' },
+        { type: 'string' },
         { type: 'any' }
     ]),
     'getFile': defineSyscall('getFile', 'is.workflow.actions.documentpicker.open', [
         { type: 'string' }
     ], FileRefValue),
     'appendFile': defineSyscall('appendFile', 'is.workflow.actions.appendtofile', [
-        { type: 'any' },
+        { type: 'string' },
         { type: 'any' }
     ]),
 
@@ -409,7 +414,7 @@ const syscallDefinitions: Record<string, SyscallDefinition> = {
 
     'getCurrentLocation': defineSyscall('getCurrentLocation', 'is.workflow.actions.getcurrentlocation', [], LocationRefValue),
     'getCurrentWeather': defineSyscall('getCurrentWeather', 'is.workflow.actions.weather.currentconditions', [
-        { type: 'any', optional: true, default: new StringValue('Current Location') }
+        { type: 'string', optional: true, default: new StringValue('Current Location') }
     ]),
 }
 

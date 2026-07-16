@@ -24,6 +24,19 @@ Or, if you want to use melon within your own Shortcut, just input your code as t
     <img src="docs/how-to-use.png" />
 </div>
 
+### Agent and chat integrations
+
+Melon can preflight generated source, report the Apple capabilities it uses, and create a link that runs an installed `melon` Shortcut:
+
+```ts
+import { prepareShortcut } from "melon-lang";
+
+const prepared = prepareShortcut('print("Hello from chat!");');
+if (prepared.valid) console.log(prepared.url);
+```
+
+Sensitive, mutating, destructive, and raw syscalls are rejected unless the caller explicitly approves them. See the [agent integration guide](docs/agent-integration.md) for the CLI, policy options, install flow, and payload limits.
+
 ### Hello world program
 
 Try running this snippet.

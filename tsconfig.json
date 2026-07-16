@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "ES2015",
+    "module": "NodeNext",
     "lib": ["ES2022", "DOM"],
-    "moduleResolution": "Node",
+    "moduleResolution": "NodeNext",
     "rootDir": ".",
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,
@@ -27,8 +27,7 @@
     
   },
   "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node",
+    "esm": true
   },
   "include": ["src/**/*", "__tests__/**/*"]
 }

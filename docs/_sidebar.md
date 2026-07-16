@@ -22,5 +22,6 @@
 
 * **Advanced**
 	* [Core Built-ins](natives.md)
+	* [Agent & Chat Integration](agent-integration.md)
 	* [Deployment Guide](shortcut-runtime.md)
 	* [Contribute](contribute.md)

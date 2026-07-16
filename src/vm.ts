@@ -1,58 +1,12 @@
 import "reflect-metadata";
 import { Type, serialize, deserialize, Transform } from 'class-transformer';
-import { CompilerBug, DivisionByZero, FunctionArgumentNumberMismatch, IndexError, InvalidFormat, InvalidType, NativeFunctionArgumentNumberMismatch, NoSuchMemberMethod, VariableAlreadyDeclared, VariableNotDeclared } from './error';
-import natives from './native';
-import syscalls from './syscall';
-import { BooleanValue, Function, FunctionValue, HostRefValue, NativeValue, ListValue, NullValue, NumberValue, StringValue, SyscallValue, TupleValue, Value, ValueTransform, MemberMethodValue, DictValue } from './value';
+import { Instruction, Opcode } from './bytecode.js';
+import { CompilerBug, DivisionByZero, ExecutionLimitExceeded, FunctionArgumentNumberMismatch, IndexError, InvalidFormat, InvalidType, NativeFunctionArgumentNumberMismatch, NoSuchMemberMethod, VariableAlreadyDeclared, VariableNotDeclared } from './error.js';
+import natives from './native.js';
+import syscalls from './syscall.js';
+import { BooleanValue, FunctionValue, HostRefValue, NativeValue, ListValue, NullValue, NumberValue, StringValue, SyscallValue, TupleValue, Value, ValueTransform, MemberMethodValue, DictValue } from './value.js';
 
-export enum Opcode {
-    PUSH = "push",
-    POP = "pop",
-    ADD = "add",
-    SUB = "sub",
-    MUL = "mul",
-    DIV = "div",
-    LT = "lt",
-    GT = "gt",
-    LTE = "lte",
-    GTE = "gte",
-    EQ = "eq",
-    GTEQ = "gteq",
-    NEQ = "neq",
-    AND = "and",
-    OR = "or",
-    NOT = "not",
-    JUMP = "jump",
-    JUMPF = "jumpf",
-    JUMPT = "jumpt",
-    JUMPTF = "jumptf",
-    LOAD = "load",
-    STORE = "store",
-    CALL = "call",
-    RET = "ret",
-    HALT = "halt",
-    PRINT = "print",
-    INPUT = "input",
-    SYSCALL = "syscall",
-    DATA = "data",
-    INC = "inc",
-    DEC = "dec",
-    NEG = "neg",
-    COPY = "copy",
-    SETGL = "setgl",
-    DECLAREGL = "declaregl",
-    LOADGL = "loadgl",
-    NATIVE = "native",
-    NOP = "nop",
-    MOD = "MOD",
-    MAKE_TUPLE = "make_tuple",
-    MAKE_LIST = "make_list",
-    MAKE_DICT = "make_dict",
-    SUBSCRIPT = "subscript",
-    STORE_SUBSCRIPT = "store_subscript",
-    MEMBER_ACCESS = "member_access",
-    POW = "POW"
-}
+export { Instruction, Opcode } from './bytecode.js';
 
 export class Stack extends Array<Value> {
     pop() {
@@ -60,18 +14,6 @@ export class Stack extends Array<Value> {
             throw new CompilerBug("Stack underflow. There is nothing to pop from the VM stack.");
 
         return super.pop();
-    }
-}
-
-export class Instruction {
-    type: Opcode;
-    lineNumber: number;
-    value?: number;
-
-    constructor(type: Opcode, lineNumber: number, value?: number,) {
-        this.type = type;
-        this.lineNumber = lineNumber;
-        this.value = value;
     }
 }
 
@@ -142,6 +84,8 @@ export class Syscall {
 }
 
 export default class VM {
+    private executedInstructions = 0;
+
     @ValueTransform()
     @Type(()=>Value)
     private data: Value[];
@@ -177,14 +121,18 @@ export default class VM {
         return this.frames[this.frames.length - 1].text;
     }
 
-    public run(timeLimitInMilliseconds: number = Infinity): VMImage {
+    public run(timeLimitInMilliseconds: number = Infinity, maxInstructions: number = 1_000_000): VMImage {
         
         const startTime = Date.now();
 
         while (Date.now() - startTime  < timeLimitInMilliseconds && this.frames.length > 0 && !this.syscall) {
+            if (this.executedInstructions >= maxInstructions)
+                throw new ExecutionLimitExceeded(maxInstructions);
+
             const instruction = this.text[this.ip];
 
             this.execute(instruction);
+            this.executedInstructions++;
 
             this.ip++;
 
@@ -616,6 +564,9 @@ export default class VM {
 
     public static deserialize(image: VMImage, arg: Value): VM {
         const vm = deserialize(VM, atob(image.state));
+
+        if (!Number.isFinite(vm.executedInstructions))
+            vm.executedInstructions = 0;
 
         if (image.status === VMStatus.SYSCALL && arg !== undefined)
             vm.frames.at(-1).stack.push(arg);

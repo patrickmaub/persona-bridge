@@ -1,8 +1,8 @@
-import { CompilerBug, SyntaxError, NativeFunctionArgumentNumberMismatch, VariableAlreadyDeclaredInScope } from './error';
-import { TokenType } from './lexer';
-import { AST, Literal, Identifier, BinaryOperation, While, If, Block, Call, Return, For, FunctionDeclaration, Expression, Statement, UnaryOperation, ASTNode, VariableAssignment, VariableDeclaration, ExpressionStatement, ImportStatement, EmptyStatement, BreakStatement, ContinueStatement, Tuple, List, Subscript, MemberAccess, Dict } from './parser';
-import { Program, Opcode, Instruction } from './vm';
-import { BooleanValue, FunctionValue, NullValue, NumberValue, StringValue, TupleValue, Value } from './value';
+import { CompilerBug, SyntaxError, NativeFunctionArgumentNumberMismatch, VariableAlreadyDeclaredInScope } from './error.js';
+import { TokenType } from './lexer.js';
+import { AST, Literal, Identifier, BinaryOperation, While, If, Block, Call, Return, For, FunctionDeclaration, Expression, Statement, UnaryOperation, ASTNode, VariableAssignment, VariableDeclaration, ExpressionStatement, ImportStatement, EmptyStatement, BreakStatement, ContinueStatement, Tuple, List, Subscript, MemberAccess, Dict } from './parser.js';
+import { Program, Opcode, Instruction } from './vm.js';
+import { BooleanValue, FunctionValue, NullValue, NumberValue, StringValue, TupleValue, Value } from './value.js';
 
 interface Local {
     name: string;

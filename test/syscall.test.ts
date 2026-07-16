@@ -1,7 +1,7 @@
 import { expect, test } from '@jest/globals';
-import { compile, evaluate } from '../src/index';
-import VM from '../src/vm';
-import { NullValue, NumberValue, StringValue, Value } from '../src/value';
+import { compile, evaluate } from '../src/index.js';
+import VM from '../src/vm.js';
+import { NullValue, NumberValue, StringValue, Value } from '../src/value.js';
 
 const evalResumeSourceCode = (sourceCode: string, valueToFeed: Value ) => {
     sourceCode += 'syscall("dummy", result);';

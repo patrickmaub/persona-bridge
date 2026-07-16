@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import 'es6-shim';
 import { Type, Expose, Transform } from "class-transformer";
-import { Instruction } from "./vm";
-import { CompilerBug, DivisionByZero, IndexError, InvalidOperationOnType, InvalidType, KeyError, NativeFunctionArgumentNumberMismatch } from './error';
+import { Instruction } from "./bytecode.js";
+import { CompilerBug, DivisionByZero, IndexError, InvalidOperationOnType, InvalidType, KeyError, NativeFunctionArgumentNumberMismatch } from './error.js';
 
 const getAsValue = (value) => {
     switch (value.___serialization_type) {
@@ -625,8 +625,7 @@ export class ListValue extends Value {
 
     @ValueMethod({ args: [], optionals: [NumberValue] })
     pop(lineNumber: number, ...args: Value[]): Value {
-        console.log(this.value)
-       return this.__delitem__(lineNumber, ...args);
+        return this.__delitem__(lineNumber, ...args);
     }
 }
 

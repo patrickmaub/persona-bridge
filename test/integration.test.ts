@@ -1,7 +1,7 @@
 import { expect, test } from '@jest/globals';
-import { compile, evaluate } from '../src/index';
-import {BooleanValue, FunctionValue, ListValue, MemberMethodValue, NativeValue,NullValue,NumberValue,StringValue,SyscallValue,TupleValue} from '../src/value';
-import { DivisionByZero, FunctionArgumentNumberMismatch, IndexError, InvalidOperationOnType, KeyError, NativeFunctionArgumentNumberMismatch, NoSuchMemberMethod, SycallArgumentNumberMismatch, SyntaxError, VariableAlreadyDeclared, VariableAlreadyDeclaredInScope, VariableNotDeclared } from '../src/error';
+import { compile, evaluate } from '../src/index.js';
+import {BooleanValue, FunctionValue, ListValue, MemberMethodValue, NativeValue,NullValue,NumberValue,StringValue,SyscallValue,TupleValue} from '../src/value.js';
+import { DivisionByZero, FunctionArgumentNumberMismatch, IndexError, InvalidOperationOnType, KeyError, NativeFunctionArgumentNumberMismatch, NoSuchMemberMethod, SycallArgumentNumberMismatch, SyntaxError, VariableAlreadyDeclared, VariableAlreadyDeclaredInScope, VariableNotDeclared } from '../src/error.js';
 
 const evalValidSourceCode = (sourceCode: string) => {
     sourceCode += 'syscall("dummy", result);';

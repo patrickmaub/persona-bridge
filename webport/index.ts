@@ -1,11 +1,13 @@
 import 'es6-shim';
 import 'reflect-metadata';
-import interpret from './interpret';
-import VM, { VMImage } from '../src/vm';
-import {StringValue, Value} from '../src/value';
-import { coerceSyscallReturnValue } from '../src/syscall';
+import interpret from './interpret.js';
+import VM, { VMImage } from '../src/vm.js';
+import {StringValue, Value} from '../src/value.js';
+import { coerceSyscallReturnValue } from '../src/syscall.js';
 
 const VM_TIME_LIMIT_FOR_EXECUTION = 150;
+const VM_MAX_TOTAL_INSTRUCTIONS = 1_000_000;
+const MAX_SOURCE_BYTES = 32_768;
 
 const getParams = () => {
 	const data = window.location.href;
@@ -28,14 +30,18 @@ const getParams = () => {
 };
 
 const begin = (sourceCode: string): void => {
-	const source = sourceCode;
+    const source = atob(sourceCode);
 
 	if (!source) {
 		console.log('No source code found in query params.');
-		return;
-	}
+        return;
+    }
 
-	const result = interpret(atob(source), VM_TIME_LIMIT_FOR_EXECUTION);
+    if (new TextEncoder().encode(source).length > MAX_SOURCE_BYTES) {
+        throw new Error(`Source code exceeds the ${MAX_SOURCE_BYTES} byte limit.`);
+    }
+
+    const result = interpret(source, VM_TIME_LIMIT_FOR_EXECUTION, VM_MAX_TOTAL_INSTRUCTIONS);
 
 	document.write(btoa(JSON.stringify(result)));
 };
@@ -48,7 +54,7 @@ const resume = (save: string, value): void => {
 		? coerceSyscallReturnValue(syscallId, decodedValue)
 		: new StringValue(decodedValue);
 	const vm = VM.deserialize(image, coercedValue);
-	const result = vm.run(VM_TIME_LIMIT_FOR_EXECUTION);
+    const result = vm.run(VM_TIME_LIMIT_FOR_EXECUTION, VM_MAX_TOTAL_INSTRUCTIONS);
 
 	document.write(btoa(JSON.stringify(result)));
 };

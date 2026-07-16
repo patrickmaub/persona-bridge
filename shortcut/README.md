@@ -10,7 +10,7 @@ The Shortcut runtime is the bridge between melon VM syscalls and Siri Shortcuts 
 
 ## Prerequisites
 
-1. Node.js and npm
+1. Node.js 20 or newer and npm for development builds (the published runtime package supports Node.js 18 or newer)
 2. Cherri CLI installed and available in PATH (`cherri`)
 3. A local static server that serves the project root at `http://127.0.0.1:5500`
 

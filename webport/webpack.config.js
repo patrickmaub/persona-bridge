@@ -29,7 +29,10 @@ export default {
         path: path.resolve(__dirname, '../dist/webport')
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.jsx', '.js']
+        extensions: ['.tsx', '.ts', '.jsx', '.js'],
+        extensionAlias: {
+            '.js': ['.ts', '.js']
+        }
     },
     plugins: [
         new HtmlWebpackPlugin({

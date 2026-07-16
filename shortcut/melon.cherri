@@ -1,6 +1,5 @@
 #include 'actions/documents'
 #include 'actions/shortcuts'
-#include 'actions/scripting'
 #include 'actions/sharing'
 #include 'actions/settings'
 #include 'actions/text'
@@ -152,494 +151,502 @@ Currently, it downloads the source code every time you run the shortcut. There i
 const MELON_SOURCE_CODE_URL = url("http://127.0.0.1:5500/dist/webport/index.html")
 const MELON_SOURCE_CODE_ = downloadURL(MELON_SOURCE_CODE_URL)
 @MELON_SOURCE_CODE = MELON_SOURCE_CODE_
-@MELON_SOURCE_CODE = base64Encode(MELON_SOURCE_CODE)
+@MELON_SOURCE_CODE = base64Encode(@MELON_SOURCE_CODE)
 @code = ShortcutInput
-const b64code = base64Encode(code)
-@url = url("data:text/html;begin={b64code};base64,{MELON_SOURCE_CODE}")
+const b64code = base64Encode(@code)
+@url = url("data:text/html;begin={b64code};base64,{@MELON_SOURCE_CODE}")
 
 @MELON_HOST_STORE: array
 @MELON_HOST_STORE_COUNTER = 0
+@syscall_arg_0_float: float
 
 repeat _ for MELON_MAX_PERSISTANCE {
-	@response = getWebpageContents(url)
-	@image = response
+	@response = getWebpageContents(@url)
+	@image = @response
 	
-	@response = base64Decode(response)
-	@response = getDictionary(response)
+	@response = base64Decode(@response)
+	@response = getDictionary(@response)
 	
-	@error = getValue(response, "error")
-	@error = error.text
+	@error_raw = getValue(@response, "error")
+	@error = getText(@error_raw)
 
-	if error {
-		alert(error, "melon execution failed.")
+	if @error {
+		alert(@error, "melon execution failed.")
 		stop()
 	}
 	
-	@status = getValue(response, "status")
+	@status_raw = getValue(@response, "status")
+	@status = getText(@status_raw)
+	@syscall_out = ""
 
-	if status.text == MELON_VM_STATUS_HALTED {
+	if @status == MELON_VM_STATUS_HALTED {
 		stop()
 	}
 
-	if status.text == MELON_VM_STATUS_SYSCALL {
-		@syscall = getValue(response, "syscall")
-		@syscall = getDictionary(syscall)
+	if @status == MELON_VM_STATUS_SYSCALL {
+		@syscall_raw = getValue(@response, "syscall")
+		@syscall = getDictionary(@syscall_raw)
 		
-		@syscall_name = getValue(syscall, "name")
-		@syscall_name = syscall_name.text
+		@syscall_name_raw = getValue(@syscall, "name")
+		@syscall_name = getText(@syscall_name_raw)
 
-		@syscall_args = getValue(syscall, "argsSerialized")
-		@syscall_arg_types = getValue(syscall, "argTypes")
-		@syscall_out = ""
+		@syscall_args = getValue(@syscall, "argsSerialized")
+		@syscall_arg_types = getValue(@syscall, "argTypes")
 		@_is_host_ref_out = 0
 
 		/* --- Pre-extract args --- */
-		@syscall_arg_count_raw = getValue(MELON_SYSCALL_ARG_COUNTS, syscall_name)
-		if !syscall_arg_count_raw {
+		@syscall_arg_count_raw = getValue(MELON_SYSCALL_ARG_COUNTS, @syscall_name)
+		if !@syscall_arg_count_raw {
 			@syscall_arg_count = 0
 		} else {
-			@syscall_arg_count = getNumbers(syscall_arg_count_raw)
+			@syscall_arg_count = getNumbers(@syscall_arg_count_raw)
 		}
 
-		if syscall_arg_count.number > 0 {
-			@syscall_arg_0 = getListItem(syscall_args, 1)
-			@syscall_arg_0_type = getListItem(syscall_arg_types, 1)
-			if syscall_arg_0_type.text == "host_ref" {
-				@syscall_arg_0 = getListItem(MELON_HOST_STORE, syscall_arg_0.number)
+		if @syscall_arg_count.number > 0 {
+			@syscall_arg_0 = getListItem(@syscall_args, 1)
+			@syscall_arg_0_text = getText(@syscall_arg_0)
+			@syscall_arg_0_number = getNumbers(@syscall_arg_0)
+			@syscall_arg_0_float = @syscall_arg_0_number
+			@syscall_arg_0_bool = false
+			if @syscall_arg_0_text == "true" {
+				@syscall_arg_0_bool = true
+			}
+			@syscall_arg_0_type_raw = getListItem(@syscall_arg_types, 1)
+			@syscall_arg_0_type = getText(@syscall_arg_0_type_raw)
+			if @syscall_arg_0_type == "host_ref" {
+				@syscall_arg_0_host_index = getNumbers(@syscall_arg_0)
+				@syscall_arg_0 = getListItem(@MELON_HOST_STORE, @syscall_arg_0_host_index)
 			}
 		}
-		if syscall_arg_count.number > 1 {
-			@syscall_arg_1 = getListItem(syscall_args, 2)
-			@syscall_arg_1_type = getListItem(syscall_arg_types, 2)
-			if syscall_arg_1_type.text == "host_ref" {
-				@syscall_arg_1 = getListItem(MELON_HOST_STORE, syscall_arg_1.number)
+		if @syscall_arg_count.number > 1 {
+			@syscall_arg_1 = getListItem(@syscall_args, 2)
+			@syscall_arg_1_text = getText(@syscall_arg_1)
+			@syscall_arg_1_number = getNumbers(@syscall_arg_1)
+			@syscall_arg_1_bool = false
+			if @syscall_arg_1_text == "true" {
+				@syscall_arg_1_bool = true
+			}
+			@syscall_arg_1_type_raw = getListItem(@syscall_arg_types, 2)
+			@syscall_arg_1_type = getText(@syscall_arg_1_type_raw)
+			if @syscall_arg_1_type == "host_ref" {
+				@syscall_arg_1_host_index = getNumbers(@syscall_arg_1)
+				@syscall_arg_1 = getListItem(@MELON_HOST_STORE, @syscall_arg_1_host_index)
 			}
 		}
 
 		/* --- Dispatch --- */
 
-		if syscall_name.text == "is.workflow.actions.showresult" {
-			show(syscall_arg_0.text)
+		if @syscall_name == "is.workflow.actions.showresult" {
+			show(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.prompt" {
-			@syscall_out = prompt(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.prompt" {
+			@syscall_out = prompt(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.stop" {
-			output(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.stop" {
+			output(@syscall_arg_0_text)
 		}
 
 		/* --- UI / Notifications --- */
 
-		if syscall_name.text == "is.workflow.actions.alert" {
-			alert(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.alert" {
+			alert(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.confirm" {
-			confirm(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.confirm" {
+			confirm(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.notification" {
-			showNotification(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.notification" {
+			showNotification(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.speaktext" {
-			speak(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.speaktext" {
+			speak(@syscall_arg_0_text)
 		}
 
 		/* --- Clipboard --- */
 
-		if syscall_name.text == "is.workflow.actions.getclipboard" {
+		if @syscall_name == "is.workflow.actions.getclipboard" {
 			@syscall_out = getClipboard()
 		}
-		if syscall_name.text == "is.workflow.actions.setclipboard" {
-			setClipboard(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.setclipboard" {
+			setClipboard(@syscall_arg_0)
 		}
 
 		/* --- Sharing --- */
 
-		if syscall_name.text == "is.workflow.actions.share" {
-			share(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.share" {
+			share(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.airdrop" {
-			airdrop(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.airdrop" {
+			airdrop(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.findemail" {
-			@syscall_out = findEmail(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.findemail" {
+			@syscall_out = findEmail(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.findmessage" {
-			@syscall_out = findMessage(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.findmessage" {
+			@syscall_out = findMessage(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.findconversation" {
-			@syscall_out = findConversation(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.findconversation" {
+			@syscall_out = findConversation(@syscall_arg_0_text)
 		}
 
 		/* --- Device Settings --- */
 
-		if syscall_name.text == "is.workflow.actions.setbrightness" {
-			setBrightness(syscall_arg_0.float)
+		if @syscall_name == "is.workflow.actions.setbrightness" {
+			setBrightness(@syscall_arg_0_float)
 		}
-		if syscall_name.text == "is.workflow.actions.setvolume" {
-			setVolume(syscall_arg_0.float)
+		if @syscall_name == "is.workflow.actions.setvolume" {
+			setVolume(@syscall_arg_0_float)
 		}
-		if syscall_name.text == "is.workflow.actions.darkmode" {
+		if @syscall_name == "is.workflow.actions.darkmode" {
 			darkMode()
 		}
-		if syscall_name.text == "is.workflow.actions.lightmode" {
+		if @syscall_name == "is.workflow.actions.lightmode" {
 			lightMode()
 		}
-		if syscall_name.text == "is.workflow.actions.toggleappearance" {
+		if @syscall_name == "is.workflow.actions.toggleappearance" {
 			toggleAppearance()
 		}
-		if syscall_name.text == "is.workflow.actions.setnightshift" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setNightShift(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.setnightshift" {
+			setNightShift(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.settruetone" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setTrueTone(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.settruetone" {
+			setTrueTone(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.togglenightshift" {
+		if @syscall_name == "is.workflow.actions.togglenightshift" {
 			toggleNightShift()
 		}
-		if syscall_name.text == "is.workflow.actions.toggletruetone" {
+		if @syscall_name == "is.workflow.actions.toggletruetone" {
 			toggleTrueTone()
 		}
-		if syscall_name.text == "is.workflow.actions.setbluetooth" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setBluetooth(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.setbluetooth" {
+			setBluetooth(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.setcellulardata" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setCellularData(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.setcellulardata" {
+			setCellularData(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.setwifi" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setWifi(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.setwifi" {
+			setWifi(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.togglebluetooth" {
+		if @syscall_name == "is.workflow.actions.togglebluetooth" {
 			toggleBluetooth()
 		}
-		if syscall_name.text == "is.workflow.actions.togglecellulardata" {
+		if @syscall_name == "is.workflow.actions.togglecellulardata" {
 			toggleCellularData()
 		}
-		if syscall_name.text == "is.workflow.actions.togglewifi" {
+		if @syscall_name == "is.workflow.actions.togglewifi" {
 			toggleWifi()
 		}
-		if syscall_name.text == "is.workflow.actions.getfocusmode" {
+		if @syscall_name == "is.workflow.actions.getfocusmode" {
 			@syscall_out = getFocusMode()
 		}
-		if syscall_name.text == "is.workflow.actions.togglednd" {
+		if @syscall_name == "is.workflow.actions.togglednd" {
 			toggleDND()
 		}
-		if syscall_name.text == "is.workflow.actions.dndoff" {
+		if @syscall_name == "is.workflow.actions.dndoff" {
 			DNDOff()
 		}
-		if syscall_name.text == "is.workflow.actions.dndon" {
+		if @syscall_name == "is.workflow.actions.dndon" {
 			DNDOn()
 		}
-		if syscall_name.text == "is.workflow.actions.setwallpaper" {
-			setWallpaper(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.setwallpaper" {
+			setWallpaper(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.setstagemanager" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			@syscall_arg_1_bool = syscall_arg_1.text == "true"
-			setStageManager(syscall_arg_0_bool, syscall_arg_1_bool)
+		if @syscall_name == "is.workflow.actions.setstagemanager" {
+			setStageManager(@syscall_arg_0_bool, @syscall_arg_1_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.togglestagemanager" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			@syscall_arg_1_bool = syscall_arg_1.text == "true"
-			toggleStageManager(syscall_arg_0_bool, syscall_arg_1_bool)
+		if @syscall_name == "is.workflow.actions.togglestagemanager" {
+			toggleStageManager(@syscall_arg_0_bool, @syscall_arg_1_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.getwallpaper" {
+		if @syscall_name == "is.workflow.actions.getwallpaper" {
 			@_host_ref_val = getWallpaper()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.getallwallpapers" {
+		if @syscall_name == "is.workflow.actions.getallwallpapers" {
 			@syscall_out = getAllWallpapers()
 		}
 
 		/* --- Device Hardware --- */
 
-		if syscall_name.text == "is.workflow.actions.vibrate" {
+		if @syscall_name == "is.workflow.actions.vibrate" {
 			vibrate()
 		}
-		if syscall_name.text == "is.workflow.actions.lock" {
+		if @syscall_name == "is.workflow.actions.lock" {
 			lockScreen()
 		}
-		if syscall_name.text == "is.workflow.actions.reboot" {
+		if @syscall_name == "is.workflow.actions.reboot" {
 			reboot()
 		}
-		if syscall_name.text == "is.workflow.actions.shutdown" {
+		if @syscall_name == "is.workflow.actions.shutdown" {
 			shutdown()
 		}
-		if syscall_name.text == "is.workflow.actions.setairplanemode" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			setAirplaneMode(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.setairplanemode" {
+			setAirplaneMode(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.toggleairplanemode" {
+		if @syscall_name == "is.workflow.actions.toggleairplanemode" {
 			toggleAirplaneMode()
 		}
-		if syscall_name.text == "is.workflow.actions.connectedtocharger" {
+		if @syscall_name == "is.workflow.actions.connectedtocharger" {
 			@syscall_out = connectedToCharger()
 		}
-		if syscall_name.text == "is.workflow.actions.ischarging" {
+		if @syscall_name == "is.workflow.actions.ischarging" {
 			@syscall_out = isCharging()
 		}
-		if syscall_name.text == "is.workflow.actions.getonscreencontent" {
+		if @syscall_name == "is.workflow.actions.getonscreencontent" {
 			@_host_ref_val = getOnScreenContent()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.getorientation" {
+		if @syscall_name == "is.workflow.actions.getorientation" {
 			@syscall_out = getOrientation()
 		}
-		if syscall_name.text == "is.workflow.actions.getbatterylevel" {
+		if @syscall_name == "is.workflow.actions.getbatterylevel" {
 			@syscall_out = getBatteryLevel()
 		}
-		if syscall_name.text == "is.workflow.actions.getdevicedetail" {
-			@syscall_out = getDeviceDetail(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getdevicedetail" {
+			@syscall_out = getDeviceDetail(@syscall_arg_0_text)
 		}
 
 		/* --- Web / Network --- */
 
-		if syscall_name.text == "is.workflow.actions.downloadurl" {
-			@_host_ref_val = downloadURL(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.downloadurl" {
+			@_host_ref_val = downloadURL(@syscall_arg_0_text)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.openurl" {
-			openURL(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.openurl" {
+			openURL(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getwebpagecontents" {
-			@syscall_out = getWebpageContents(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getwebpagecontents" {
+			@syscall_out = getWebpageContents(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getarticle" {
-			@syscall_out = getArticle(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getarticle" {
+			@syscall_out = getArticle(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.searchgiphy" {
-			@_host_ref_val = searchGiphy(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.searchgiphy" {
+			@_host_ref_val = searchGiphy(@syscall_arg_0_text)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.expandurl" {
-			@syscall_out = expandURL(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.expandurl" {
+			@syscall_out = expandURL(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getcurrenturl" {
+		if @syscall_name == "is.workflow.actions.getcurrenturl" {
 			@syscall_out = getCurrentURL()
 		}
-		if syscall_name.text == "is.workflow.actions.showwebpage" {
-			showWebpage(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.showwebpage" {
+			showWebpage(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.isonline" {
+		if @syscall_name == "is.workflow.actions.isonline" {
 			@syscall_out = isOnline()
 		}
-		if syscall_name.text == "is.workflow.actions.connecttoserver" {
-			connectToServer(syscall_arg_0.text)
+		if @syscall_name == "is.workflow.actions.connecttoserver" {
+			connectToServer(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getrss" {
-			@syscall_out = getRSS(syscall_arg_0.number, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.getrss" {
+			@syscall_out = getRSS(@syscall_arg_0_number, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getrssfeeds" {
-			@syscall_out = getRSSFeeds(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getrssfeeds" {
+			@syscall_out = getRSSFeeds(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.addtoreadinglist" {
-			addToReadingList(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.addtoreadinglist" {
+			addToReadingList(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.runjavascriptonwebpage" {
-			@syscall_out = runJavaScriptOnWebpage(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.runjavascriptonwebpage" {
+			@syscall_out = runJavaScriptOnWebpage(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.searchweb" {
-			searchWeb(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.searchweb" {
+			searchWeb(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.geturldetail" {
-			@syscall_out = getURLDetail(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.geturldetail" {
+			@syscall_out = getURLDetail(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.geturlheaders" {
-			@syscall_out = getURLHeaders(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.geturlheaders" {
+			@syscall_out = getURLHeaders(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.geturls" {
-			@syscall_out = getURLs(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.geturls" {
+			@syscall_out = getURLs(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.openxcallbackurl" {
-			openXCallbackURL(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.openxcallbackurl" {
+			openXCallbackURL(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getwebpagedetail" {
-			@syscall_out = getWebPageDetail(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.getwebpagedetail" {
+			@syscall_out = getWebPageDetail(@syscall_arg_0, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.searchappstore" {
-			@syscall_out = searchAppStore(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.searchappstore" {
+			@syscall_out = searchAppStore(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.showinitunes" {
-			showIniTunes(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.showinitunes" {
+			showIniTunes(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.takescreenshot" {
+		if @syscall_name == "is.workflow.actions.takescreenshot" {
 			@_host_ref_val = takeScreenshot()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.playsound" {
-			playSound(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.playsound" {
+			playSound(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.recordaudio" {
+		if @syscall_name == "is.workflow.actions.recordaudio" {
 			@_host_ref_val = recordAudio()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.getpodcasts" {
+		if @syscall_name == "is.workflow.actions.getpodcasts" {
 			@syscall_out = getPodcasts()
 		}
-		if syscall_name.text == "is.workflow.actions.searchpodcasts" {
-			@syscall_out = searchPodcasts(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.searchpodcasts" {
+			@syscall_out = searchPodcasts(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.playpodcast" {
-			playPodcast(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.playpodcast" {
+			playPodcast(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.startshazam" {
+		if @syscall_name == "is.workflow.actions.startshazam" {
 			@syscall_out = startShazam()
 		}
-		if syscall_name.text == "is.workflow.actions.takephoto" {
+		if @syscall_name == "is.workflow.actions.takephoto" {
 			@_host_ref_val = takePhoto()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.takevideo" {
+		if @syscall_name == "is.workflow.actions.takevideo" {
 			@_host_ref_val = takeVideo()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.trimvideo" {
-			@_host_ref_val = trimVideo(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.trimvideo" {
+			@_host_ref_val = trimVideo(@syscall_arg_0)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.searchvoicememos" {
-			@_host_ref_val = searchVoiceMemos(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.searchvoicememos" {
+			@_host_ref_val = searchVoiceMemos(@syscall_arg_0_text)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.stripmediametadata" {
-			@_host_ref_val = stripMediaMetadata(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.stripmediametadata" {
+			@_host_ref_val = stripMediaMetadata(@syscall_arg_0)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.encodeaudio" {
-			@_host_ref_val = encodeAudio(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.encodeaudio" {
+			@_host_ref_val = encodeAudio(@syscall_arg_0)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.encodevideo" {
-			@_host_ref_val = encodeVideo(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.encodevideo" {
+			@_host_ref_val = encodeVideo(@syscall_arg_0)
 			@_is_host_ref_out = 1
 		}
 
 		/* --- Contacts --- */
 
-		if syscall_name.text == "is.workflow.actions.getcontacts" {
-			@syscall_out = getContacts(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getcontacts" {
+			@syscall_out = getContacts(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.selectcontact" {
-			@syscall_arg_0_bool = syscall_arg_0.text == "true"
-			@syscall_out = selectContact(syscall_arg_0_bool)
+		if @syscall_name == "is.workflow.actions.selectcontact" {
+			@syscall_out = selectContact(@syscall_arg_0_bool)
 		}
-		if syscall_name.text == "is.workflow.actions.selectemailaddress" {
+		if @syscall_name == "is.workflow.actions.selectemailaddress" {
 			@syscall_out = selectEmailAddress()
 		}
-		if syscall_name.text == "is.workflow.actions.call" {
-			call(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.call" {
+			call(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.getemails" {
-			@syscall_out = getEmails(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getemails" {
+			@syscall_out = getEmails(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getphonenumbers" {
-			@syscall_out = getPhoneNumbers(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getphonenumbers" {
+			@syscall_out = getPhoneNumbers(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.selectphonenumber" {
+		if @syscall_name == "is.workflow.actions.selectphonenumber" {
 			@syscall_out = selectPhoneNumber()
 		}
-		if syscall_name.text == "is.workflow.actions.emailaddress" {
-			@syscall_out = emailAddress(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.emailaddress" {
+			@syscall_out = emailAddress(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.phonenumber" {
-			@syscall_out = phoneNumber(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.phonenumber" {
+			@syscall_out = phoneNumber(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getcontactdetail" {
-			@syscall_out = getContactDetail(syscall_arg_0, syscall_arg_1.text)
+		if @syscall_name == "is.workflow.actions.getcontactdetail" {
+			@syscall_out = getContactDetail(@syscall_arg_0, @syscall_arg_1_text)
 		}
 
 		/* --- Text --- */
 
-		if syscall_name.text == "is.workflow.actions.define" {
-			@syscall_out = define(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.define" {
+			@syscall_out = define(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getemojiname" {
-			@syscall_out = getEmojiName(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getemojiname" {
+			@syscall_out = getEmojiName(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.gettextfromimage" {
-			@syscall_out = getTextFromImage(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.gettextfromimage" {
+			@syscall_out = getTextFromImage(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.transcribetext" {
-			@syscall_out = transcribeText(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.transcribetext" {
+			@syscall_out = transcribeText(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.getrichtextfrommarkdown" {
-			@syscall_out = getRichTextFromMarkdown(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getrichtextfrommarkdown" {
+			@syscall_out = getRichTextFromMarkdown(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.makehtml" {
-			@syscall_out = makeHTML(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.makehtml" {
+			@syscall_out = makeHTML(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.makemarkdown" {
-			@syscall_out = makeMarkdown(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.makemarkdown" {
+			@syscall_out = makeMarkdown(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.getrichtextfromhtml" {
-			@syscall_out = getRichTextFromHTML(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.getrichtextfromhtml" {
+			@syscall_out = getRichTextFromHTML(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.lowercase" {
-			@syscall_out = lowercase(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.lowercase" {
+			@syscall_out = lowercase(@syscall_arg_0_text)
 		}
-		if syscall_name.text == "is.workflow.actions.uppercase" {
-			@syscall_out = uppercase(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.uppercase" {
+			@syscall_out = uppercase(@syscall_arg_0_text)
 		}
 
 		/* --- Files --- */
 
-		if syscall_name.text == "is.workflow.actions.documentpicker.save" {
-			saveFile(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.documentpicker.save" {
+			saveFile(@syscall_arg_0_text, @syscall_arg_1)
 		}
-		if syscall_name.text == "is.workflow.actions.documentpicker.open" {
-			@_host_ref_val = getFile(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.documentpicker.open" {
+			@_host_ref_val = getFile(@syscall_arg_0_text)
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.appendtofile" {
-			appendToFile(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.appendtofile" {
+			appendToFile(@syscall_arg_0_text, @syscall_arg_1)
 		}
 
 		/* --- Control --- */
 
-		if syscall_name.text == "is.workflow.actions.delay" {
-			wait(syscall_arg_0.number)
+		if @syscall_name == "is.workflow.actions.delay" {
+			wait(@syscall_arg_0_number)
 		}
 
 		/* --- Shortcuts --- */
 
-		if syscall_name.text == "is.workflow.actions.runworkflow" {
-			@syscall_out = run(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.runworkflow" {
+			@syscall_out = run(@syscall_arg_0_text, @syscall_arg_1_text)
 		}
 
 		/* --- Crypto --- */
 
-		if syscall_name.text == "is.workflow.actions.hash" {
-			@syscall_out = hash(syscall_arg_0, syscall_arg_1)
+		if @syscall_name == "is.workflow.actions.hash" {
+			@syscall_out = hash(@syscall_arg_0, @syscall_arg_1_text)
 		}
-		if syscall_name.text == "is.workflow.actions.base64encode" {
-			@syscall_out = base64Encode(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.base64encode" {
+			@syscall_out = base64Encode(@syscall_arg_0)
 		}
-		if syscall_name.text == "is.workflow.actions.base64decode" {
-			@syscall_out = base64Decode(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.base64decode" {
+			@syscall_out = base64Decode(@syscall_arg_0_text)
 		}
 
 		/* --- Location / Weather --- */
 
-		if syscall_name.text == "is.workflow.actions.getcurrentlocation" {
+		if @syscall_name == "is.workflow.actions.getcurrentlocation" {
 			@_host_ref_val = getCurrentLocation()
 			@_is_host_ref_out = 1
 		}
-		if syscall_name.text == "is.workflow.actions.weather.currentconditions" {
-			@syscall_out = getCurrentWeather(syscall_arg_0)
+		if @syscall_name == "is.workflow.actions.weather.currentconditions" {
+			@syscall_out = getCurrentWeather(@syscall_arg_0_text)
 		}
 
 		/* --- Host store allocation --- */
 
-		if _is_host_ref_out.number == 1 {
-			@MELON_HOST_STORE += _host_ref_val
-			@MELON_HOST_STORE_COUNTER = MELON_HOST_STORE_COUNTER + 1
-			@syscall_out = "{MELON_HOST_STORE_COUNTER}"
+		if @_is_host_ref_out.number == 1 {
+			@MELON_HOST_STORE += @_host_ref_val
+			@MELON_HOST_STORE_COUNTER = @MELON_HOST_STORE_COUNTER + 1
+			@syscall_out = "{@MELON_HOST_STORE_COUNTER}"
 		}
 	}
-	@syscall_out = base64Encode(syscall_out)
-	@url = url("data:text/html;resume={image};value={syscall_out};base64,{MELON_SOURCE_CODE}")
+	@syscall_out = base64Encode(@syscall_out)
+	@url = url("data:text/html;resume={@image};value={@syscall_out};base64,{@MELON_SOURCE_CODE}")
 }

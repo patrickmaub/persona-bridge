@@ -1,8 +1,8 @@
 
 import { expect, test } from '@jest/globals';
-import VM, { Opcode, Program, VMImage, VMStatus } from '../src/vm';
-import { CompilerBug,  } from '../src/error';
-import { NumberValue, StringValue, SyscallValue } from '../src/value';
+import VM, { Opcode, Program, VMImage, VMStatus } from '../src/vm.js';
+import { CompilerBug,  } from '../src/error.js';
+import { NumberValue, StringValue, SyscallValue } from '../src/value.js';
 
 const decodeString = (str: string) => (JSON.parse(atob(str)));
 

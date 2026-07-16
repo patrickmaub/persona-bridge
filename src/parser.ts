@@ -1,5 +1,5 @@
-import { Token, TokenType } from './lexer';
-import { SyntaxError } from './error';
+import { Token, TokenType } from './lexer.js';
+import { SyntaxError } from './error.js';
 
 export type AST = (Declaration | Statement)[];
 export type Declaration = FunctionDeclaration | VariableDeclaration | Statement;

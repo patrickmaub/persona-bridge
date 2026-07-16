@@ -1,5 +1,5 @@
 import { expect, test } from '@jest/globals';
-import  Lexer, { TokenType } from '../src/lexer';
+import  Lexer, { TokenType } from '../src/lexer.js';
 
 test('should tokenize a simple expression', () => {
     const lexer = new Lexer('1 + 2');

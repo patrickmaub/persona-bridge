@@ -1,5 +1,3 @@
-import { Value } from "./value"
-
 export class MelonError extends Error {
     constructor(lineNumber: number, message: string){
         super(`[melon] ${message} at line ${lineNumber}.`)
@@ -9,6 +7,12 @@ export class MelonError extends Error {
 export class RuntimeError extends MelonError {
     constructor(lineNumber: number, message: string){
         super(lineNumber, `Runtime Error: ${message}`)
+    }
+}
+
+export class ExecutionLimitExceeded extends RuntimeError {
+    constructor(limit: number){
+        super(-1, `Execution stopped after ${limit} instructions`)
     }
 }
 
