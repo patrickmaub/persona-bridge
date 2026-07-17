@@ -1,54 +1,41 @@
-# Melon Programming Language 🍉
+# Persona Bridge
 
-**melon** is an orthogonally persistent language designed for creating **automations** for **Apple** devices that run **blazingly fast ⚡**. It uses **Siri Shortcuts** as a backend, but allows for more complex and performant automations to be created compared to **Shortcuts** application itself.
+Persona Bridge is a signed, general-purpose Apple Shortcut that lets Persona run small, capability-audited programs on an Apple device. A user installs one Shortcut once; Persona can then post validated `shortcuts://` actions without asking the user to build a new Shortcut for every task.
 
-## Documentation
+[Install Persona Bridge](https://raw.githubusercontent.com/patrickmaub/persona-bridge/main/shortcut/Persona%20Bridge.shortcut)
 
-You can learn about melon language features from [here](https://melon-lang.github.io/melon-lang/#/).
+The exact filename matters: Apple imports it as a Shortcut named **Persona Bridge**, which is also the name used by generated run links.
 
-## Installation
+## Agent flow
 
-Start by installing `melon` Shortcut to your device from [here](https://github.com/melon-lang/melon-lang/releases/latest/download/melon.shortcut). 
+1. Generate a small program in the underlying Melon language.
+2. Run the deterministic capability preflight.
+3. Disclose and approve sensitive or mutating capabilities.
+4. Post the returned `shortcuts://run-shortcut` URL as **Run with Persona Bridge**.
 
-This shortcut will serve as our interpreter. 
-
-## Quickstart
-
-### How to use
-
-You can go to the [web playground](https://melon-lang.github.io/playground/) to experiment with melon language features. This playground contains a web editor. Whenever you press **Run** button, it sends your code to `melon` Shortcut that you installed on your device. Then your code gets executed locally by the shortcut.
-
-Or, if you want to use melon within your own Shortcut, just input your code as text to `Run Shortcut (melon)` action in your shortcut as down below.
-
-<div align="center">
-    <img src="docs/how-to-use.png" />
-</div>
-
-### Agent and chat integrations
-
-Melon can preflight generated source, report the Apple capabilities it uses, and create a link that runs an installed `melon` Shortcut:
+```bash
+npm run build
+npm run melon -- check program.melon
+npm run melon -- link program.melon
+```
 
 ```ts
 import { prepareShortcut } from "melon-lang";
 
-const prepared = prepareShortcut('print("Hello from chat!");');
+const prepared = prepareShortcut('print("Hello from Persona Bridge.");');
 if (prepared.valid) console.log(prepared.url);
 ```
 
-Sensitive, mutating, destructive, and raw syscalls are rejected unless the caller explicitly approves them. See the [agent integration guide](docs/agent-integration.md) for the CLI, policy options, install flow, and payload limits.
+See [docs/agent-integration.md](docs/agent-integration.md) for policy options, capability manifests, payload limits, and install behavior.
 
-### Hello world program
+## Current Apple-data support
 
-Try running this snippet.
+- Messages queries are available but treated as sensitive and require explicit approval.
+- Apple Notes reads are not currently implemented; the validator will not invent an unsupported action.
+- Arbitrary raw syscalls, destructive actions, and unapproved writes are rejected by default.
 
-```
-print("Hello world!");
-```
+## Upstream and license
 
-In melon, you use native `print` function to display text or other types of data. melon uses `Show Result` action to achieve this.
+Persona Bridge is a branded fork of [melon-lang/melon-lang](https://github.com/melon-lang/melon-lang). Melon remains the internal source language and package name for upstream and license compatibility; the installed runner and user-facing actions are branded Persona Bridge.
 
-## Contribution and More
-
-Guides on how to contribute are available in docs under [Contribution](https://melon-lang.github.io/melon-lang/#/contribute) section.
-Shortcut runtime (written in Cherri) setup and workflow guide is available in [shortcut/README.md](shortcut/README.md).
-You can join our [Discord server](https://discord.gg/5WS2PBEJcn) to discuss about anything related to melon. 
+The original project documentation is available at [melon-lang.github.io/melon-lang](https://melon-lang.github.io/melon-lang/#/). Contributions to the runtime should also follow [shortcut/README.md](shortcut/README.md).

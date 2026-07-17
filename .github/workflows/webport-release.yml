@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'npm'
       - run: npm ci
       - run: npm run build:webport
@@ -41,7 +41,7 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "Melon v${{ steps.package_version.outputs.version }}"
+          title: "Persona Bridge v${{ steps.package_version.outputs.version }}"
           automatic_release_tag: "v${{ steps.package_version.outputs.version }}"
           prerelease: false
           files: |

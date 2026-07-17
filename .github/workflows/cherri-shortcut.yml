@@ -1,7 +1,7 @@
 name: Build Persona Bridge Shortcut
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   workflow_dispatch:
@@ -17,10 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'npm'
 
       - name: Tap Cherri repository
@@ -55,19 +55,3 @@ jobs:
           name: persona-bridge-shortcut
           path: shortcut/Persona Bridge.shortcut
           if-no-files-found: error
-
-      - name: Read package version
-        id: package_version
-        run: |
-          VERSION=$(node -e "console.log(require('./package.json').version)")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Release version: $VERSION"
-
-      - name: Create release
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        with:
-          tag_name: "v${{ steps.package_version.outputs.version }}"
-          name: "Persona Bridge v${{ steps.package_version.outputs.version }}"
-          files: shortcut/Persona Bridge.shortcut
-          token: ${{ secrets.GITHUB_TOKEN }}
