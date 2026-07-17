@@ -47,13 +47,13 @@ jobs:
 
       - name: Compile shortcut
         working-directory: shortcut
-        run: cherri melon.cherri --output=./persona-bridge.shortcut
+        run: cherri melon.cherri --output='./Persona Bridge.shortcut'
 
       - name: Upload shortcut artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-bridge-shortcut
-          path: shortcut/persona-bridge.shortcut
+          path: shortcut/Persona Bridge.shortcut
           if-no-files-found: error
 
       - name: Read package version
@@ -69,5 +69,5 @@ jobs:
         with:
           tag_name: "v${{ steps.package_version.outputs.version }}"
           name: "Persona Bridge v${{ steps.package_version.outputs.version }}"
-          files: shortcut/persona-bridge.shortcut
+          files: shortcut/Persona Bridge.shortcut
           token: ${{ secrets.GITHUB_TOKEN }}

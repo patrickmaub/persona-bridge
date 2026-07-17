@@ -4,7 +4,7 @@ Persona Bridge uses one installed, Persona-branded Shortcut as a runner. A model
 
 ## Recommended flow
 
-1. Ask the user to install the signed [Persona Bridge Shortcut](https://github.com/patrickmaub/persona-bridge/releases/latest/download/persona-bridge.shortcut) once.
+1. Ask the user to install the signed [Persona Bridge Shortcut](https://github.com/patrickmaub/persona-bridge/releases/latest/download/Persona%20Bridge.shortcut) once.
 2. Generate a small Melon program.
 3. Call `prepareShortcut` with the capabilities your product or user has approved.
 4. Show the returned capability manifest beside the action button.
