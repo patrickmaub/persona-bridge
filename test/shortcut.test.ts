@@ -33,7 +33,7 @@ test('prepares an exact runnable URL for a low-risk program', () => {
     expect(result.url).toBeDefined();
     const url = new URL(result.url);
     expect(url.protocol).toBe('shortcuts:');
-    expect(url.searchParams.get('name')).toBe('melon');
+    expect(url.searchParams.get('name')).toBe('Persona Bridge');
     expect(url.searchParams.get('input')).toBe('text');
     expect(url.searchParams.get('text')).toBe(source);
 });

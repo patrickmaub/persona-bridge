@@ -175,7 +175,7 @@ const createRunUrl = (shortcutName: string, source: string): string =>
 export const prepareShortcut = (source: string, options: PrepareShortcutOptions = {}): PreparedShortcut => {
     const analysis = analyzeShortcut(source);
     const diagnostics = [...analysis.diagnostics];
-    const shortcutName = options.shortcutName ?? 'melon';
+    const shortcutName = options.shortcutName ?? 'Persona Bridge';
     const allowedRisks = new Set<CapabilityRisk>(['low', ...(options.allowedRisks ?? [])]);
     const allowedCapabilities = new Set(options.allowedCapabilities ?? []);
     const maxSourceBytes = options.maxSourceBytes ?? 32_768;

@@ -1,4 +1,4 @@
-name: Build Shortcut Artifact
+name: Build Persona Bridge Shortcut
 
 permissions:
   contents: write
@@ -47,13 +47,13 @@ jobs:
 
       - name: Compile shortcut
         working-directory: shortcut
-        run: cherri melon.cherri
+        run: cherri melon.cherri --output=./persona-bridge.shortcut
 
       - name: Upload shortcut artifact
         uses: actions/upload-artifact@v4
         with:
-          name: melon-shortcut
-          path: shortcut/melon.shortcut
+          name: persona-bridge-shortcut
+          path: shortcut/persona-bridge.shortcut
           if-no-files-found: error
 
       - name: Read package version
@@ -68,6 +68,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           tag_name: "v${{ steps.package_version.outputs.version }}"
-          name: "Melon Shortcut v${{ steps.package_version.outputs.version }}"
-          files: shortcut/melon.shortcut
+          name: "Persona Bridge v${{ steps.package_version.outputs.version }}"
+          files: shortcut/persona-bridge.shortcut
           token: ${{ secrets.GITHUB_TOKEN }}

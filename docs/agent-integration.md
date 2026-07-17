@@ -1,10 +1,10 @@
-# Agent and Chat Integration
+# Persona Bridge Agent and Chat Integration
 
-Melon uses one installed Shortcut as a runner. A model generates Melon source; your server validates it and posts a run link. The model does not generate or sign a new `.shortcut` file for every response.
+Persona Bridge uses one installed, Persona-branded Shortcut as a runner. A model generates source for the underlying Melon runtime; your server validates it and posts a run link. The model does not generate or sign a new `.shortcut` file for every response.
 
 ## Recommended flow
 
-1. Ask the user to install the signed [melon Shortcut](https://github.com/melon-lang/melon-lang/releases/latest/download/melon.shortcut) once.
+1. Ask the user to install the signed [Persona Bridge Shortcut](https://github.com/patrickmaub/persona-bridge/releases/latest/download/persona-bridge.shortcut) once.
 2. Generate a small Melon program.
 3. Call `prepareShortcut` with the capabilities your product or user has approved.
 4. Show the returned capability manifest beside the action button.

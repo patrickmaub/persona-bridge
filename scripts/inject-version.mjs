@@ -25,7 +25,7 @@ if (!version) {
 }
 
 // Get webport URL from environment or default to GitHub release matching the version
-let webportUrl = process.env.MELON_WEBPORT_URL || `https://github.com/melon-lang/melon-lang/releases/download/v${version}/build.html`;
+let webportUrl = process.env.MELON_WEBPORT_URL || `https://github.com/patrickmaub/persona-bridge/releases/download/v${version}/build.html`;
 
 const melonCherriPath = path.join(__dirname, '..', 'shortcut', 'melon.cherri');
 let content = fs.readFileSync(melonCherriPath, 'utf8');

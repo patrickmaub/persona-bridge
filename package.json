@@ -6,8 +6,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "build:webport": "webpack --config webport/webpack.config.js",
-    "build:shortcut": "node scripts/inject-version.mjs && cd shortcut && cherri melon.cherri",
-    "build:shortcut:dev": "cd shortcut && cherri melon.cherri",
+    "build:shortcut": "node scripts/inject-version.mjs && cd shortcut && cherri melon.cherri --output=./persona-bridge.shortcut",
+    "build:shortcut:dev": "cd shortcut && cherri melon.cherri --output=./persona-bridge.shortcut",
     "start": "node dist/src/cli.js",
     "melon": "node dist/src/cli.js"
   },

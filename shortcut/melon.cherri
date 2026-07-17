@@ -12,16 +12,19 @@
 #include 'actions/contacts'
 #define color red
 #define glyph timeLapse
+#define name Persona Bridge
 
 /*
-melon 🍉 Shortcut
+Persona Bridge
 
-    melon is an orthogonally persistent language designed for creating blazing fast automations for Apple devices. It uses Siri Shortcuts as a backend, but allows for more complex and performant automations to be created compared to Shortcuts application itself.
+    Persona's on-device automation runner. Persona sends small, capability-audited
+    programs here so approved Apple Shortcuts actions can execute locally.
 
+Built from melon-lang under the ISC license.
 https://github.com/melon-lang/melon-lang
 
 */
-const MELON_VERSION = "1.0.11"
+const MELON_VERSION = "1.0.12"
 const MELON_MAX_PERSISTANCE = 2147483647
 const MELON_VM_STATUS_SYSCALL = "syscall"
 const MELON_VM_STATUS_HALTED = "halted"
@@ -148,7 +151,7 @@ Download melon source code from Github.
 
 Currently, it downloads the source code every time you run the shortcut. There is no cache mechanism. It will be added later.
 */
-const MELON_SOURCE_CODE_URL = url("http://127.0.0.1:5500/dist/webport/index.html")
+const MELON_SOURCE_CODE_URL = url("https://github.com/patrickmaub/persona-bridge/releases/download/v1.0.12/build.html")
 const MELON_SOURCE_CODE_ = downloadURL(MELON_SOURCE_CODE_URL)
 @MELON_SOURCE_CODE = MELON_SOURCE_CODE_
 @MELON_SOURCE_CODE = base64Encode(@MELON_SOURCE_CODE)
@@ -171,7 +174,7 @@ repeat _ for MELON_MAX_PERSISTANCE {
 	@error = getText(@error_raw)
 
 	if @error {
-		alert(@error, "melon execution failed.")
+		alert(@error, "Persona Bridge failed.")
 		stop()
 	}
 	
